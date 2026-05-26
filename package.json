@@ -6,7 +6,11 @@
     "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
     "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
     "start:backend": "cd backend && npm run dev",
-    "start:frontend": "cd frontend && npm start"
+    "start:frontend": "cd frontend && npm start",
+    "build": "cd frontend && npm run build",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend && npm test -- --watch=false",
+    "verify": "npm run test:backend && cd backend && npx prisma validate && cd ../frontend && npm test -- --watch=false && npm run build"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

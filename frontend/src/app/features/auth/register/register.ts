@@ -9,7 +9,7 @@ import { AuthService } from '../../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './register.html',
-  styleUrl: './register.scss'
+  styleUrl: './register.scss',
 })
 export class Register {
   email = '';
@@ -18,7 +18,10 @@ export class Register {
   errorMessage = '';
   isLoading = false;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+  ) {}
 
   onSubmit() {
     this.errorMessage = '';
@@ -28,8 +31,8 @@ export class Register {
       return;
     }
 
-    if (this.password.length < 6) {
-      this.errorMessage = 'Password must be at least 6 characters.';
+    if (this.password.length < 8) {
+      this.errorMessage = 'Password must be at least 8 characters.';
       return;
     }
 
@@ -49,7 +52,7 @@ export class Register {
       error: (err) => {
         this.isLoading = false;
         this.errorMessage = err.error?.error || 'Registration failed.';
-      }
+      },
     });
   }
 }

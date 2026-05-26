@@ -16,6 +16,7 @@ export interface Transaction {
   merchant_name: string;
   date: string;
   is_recurring: boolean;
+  isSplitting?: boolean;
 }
 
 @Injectable({

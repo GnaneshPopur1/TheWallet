@@ -12,28 +12,26 @@ import { environment } from '../environments/environment';
   standalone: true,
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ChatbotComponent],
   templateUrl: './app.html',
-  styleUrl: './app.scss'
+  styleUrl: './app.scss',
 })
 export class App implements OnInit {
   title = 'TheWallet';
   isDarkTheme = true;
 
-  readonly VAPID_PUBLIC_KEY = "BGGFPOvmB9PP-ZC3WthhNF3t8-4AHqaivta5CDcqILPNT1boj2kwqiX7M0EL2rxJAa0VkTg8rBp1puyZcjUd7Pw";
-
   constructor(
-    public authService: AuthService, 
+    public authService: AuthService,
     private router: Router,
     private swPush: SwPush,
-    private http: HttpClient
+    private http: HttpClient,
   ) {}
 
   ngOnInit() {
-    this.authService.checkAuthStatus().subscribe(user => {
+    this.authService.checkAuthStatus().subscribe((user) => {
       if (user) {
         this.subscribeToNotifications();
       }
     });
-    
+
     // Load theme from localStorage
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'light') {
@@ -43,16 +41,19 @@ export class App implements OnInit {
   }
 
   subscribeToNotifications() {
-    if (this.swPush.isEnabled) {
-      this.swPush.requestSubscription({
-        serverPublicKey: this.VAPID_PUBLIC_KEY
-      })
-      .then(sub => {
-        const token = localStorage.getItem('token');
-        const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-        this.http.post(`${environment.apiUrl}/notifications/subscribe`, sub, { headers }).subscribe();
-      })
-      .catch(err => console.error("Could not subscribe to notifications", err));
+    if (this.swPush.isEnabled && environment.vapidPublicKey) {
+      this.swPush
+        .requestSubscription({
+          serverPublicKey: environment.vapidPublicKey,
+        })
+        .then((sub) => {
+          const token = localStorage.getItem('token');
+          const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+          this.http
+            .post(`${environment.apiUrl}/notifications/subscribe`, sub, { headers })
+            .subscribe();
+        })
+        .catch((err) => console.error('Could not subscribe to notifications', err));
     }
   }
 

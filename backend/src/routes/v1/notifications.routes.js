@@ -2,18 +2,25 @@ const express = require('express');
 const router = express.Router();
 const webpush = require('web-push');
 const prisma = require('../../db');
+const config = require('../../config');
 const { authenticateToken } = require('../../middleware/auth.middleware');
 
-// In production, these should be in .env
-const publicVapidKey = 'BGGFPOvmB9PP-ZC3WthhNF3t8-4AHqaivta5CDcqILPNT1boj2kwqiX7M0EL2rxJAa0VkTg8rBp1puyZcjUd7Pw';
-const privateVapidKey = 'ZosWBPgOhfMkGGgwLrZhdmWe1cx-ac0r89VVxnyhXk0';
-
-webpush.setVapidDetails('mailto:test@example.com', publicVapidKey, privateVapidKey);
+if (config.vapidPublicKey && config.vapidPrivateKey) {
+  webpush.setVapidDetails('mailto:test@example.com', config.vapidPublicKey, config.vapidPrivateKey);
+}
 
 // Subscribe to push notifications
 router.post('/subscribe', authenticateToken, async (req, res) => {
   try {
+    if (!config.vapidPublicKey || !config.vapidPrivateKey) {
+      return res.status(503).json({ error: 'Push notifications are not configured' });
+    }
+
     const subscription = req.body;
+
+    if (!subscription?.endpoint || !subscription?.keys?.p256dh || !subscription?.keys?.auth) {
+      return res.status(400).json({ error: 'Invalid push subscription' });
+    }
 
     // The subscription has endpoint and keys { p256dh, auth }
     await prisma.push_Subscription.create({
@@ -21,8 +28,8 @@ router.post('/subscribe', authenticateToken, async (req, res) => {
         user_id: req.user.user_id,
         endpoint: subscription.endpoint,
         p256dh: subscription.keys.p256dh,
-        auth: subscription.keys.auth
-      }
+        auth: subscription.keys.auth,
+      },
     });
 
     res.status(201).json({ message: 'Subscribed successfully' });
@@ -34,8 +41,12 @@ router.post('/subscribe', authenticateToken, async (req, res) => {
 // Test endpoint to trigger a notification
 router.post('/test', authenticateToken, async (req, res) => {
   try {
+    if (!config.vapidPublicKey || !config.vapidPrivateKey) {
+      return res.status(503).json({ error: 'Push notifications are not configured' });
+    }
+
     const subs = await prisma.push_Subscription.findMany({
-      where: { user_id: req.user.user_id }
+      where: { user_id: req.user.user_id },
     });
 
     if (subs.length === 0) {
@@ -46,8 +57,8 @@ router.post('/test', authenticateToken, async (req, res) => {
       notification: {
         title: 'TheWallet Alert',
         body: 'This is a test notification from TheWallet!',
-        icon: '/icons/icon-192x192.png'
-      }
+        icon: '/icons/icon-192x192.png',
+      },
     });
 
     for (let sub of subs) {
@@ -55,8 +66,8 @@ router.post('/test', authenticateToken, async (req, res) => {
         endpoint: sub.endpoint,
         keys: {
           p256dh: sub.p256dh,
-          auth: sub.auth
-        }
+          auth: sub.auth,
+        },
       };
 
       try {

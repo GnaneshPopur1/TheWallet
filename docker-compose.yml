@@ -1,37 +1,22 @@
 version: '3.8'
 
 services:
-  database:
-    image: postgres:15-alpine
-    container_name: thewallet-db
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: thewallet
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: thewallet-backend
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
-      - DATABASE_URL=postgresql://postgres:password@database:5432/thewallet?schema=public
-      - JWT_SECRET=supersecretjwtkey_production_ready
+      - DATABASE_URL=file:/app/data/dev.db
+      - JWT_SECRET=${JWT_SECRET:-dev-only-change-me}
+      - CORS_ORIGIN=http://localhost
+      - PUBLIC_API_URL=http://localhost:3000
       - PORT=3000
-    depends_on:
-      database:
-        condition: service_healthy
+    volumes:
+      - backend-data:/app/data
+    command: sh -c "mkdir -p /app/data && touch /app/data/dev.db && npx prisma migrate deploy && npm start"
 
   frontend:
     build:
@@ -39,9 +24,9 @@ services:
       dockerfile: Dockerfile
     container_name: thewallet-frontend
     ports:
-      - "80:80"
+      - '80:80'
     depends_on:
       - backend
 
 volumes:
-  pgdata:
+  backend-data:

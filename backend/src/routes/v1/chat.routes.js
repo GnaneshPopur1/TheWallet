@@ -1,26 +1,27 @@
 const express = require('express');
 const router = express.Router();
 const prisma = require('../../db');
+const config = require('../../config');
 const { authenticateToken } = require('../../middleware/auth.middleware');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 router.post('/', authenticateToken, async (req, res) => {
   try {
     const { message } = req.body;
-    
+
     // 1. Fetch user's financial context
     const accounts = await prisma.account.findMany({
       where: { user_id: req.user.user_id },
-      select: { account_type: true, current_balance: true }
+      select: { account_type: true, current_balance: true },
     });
-    
+
     const transactions = await prisma.transaction.findMany({
       where: { account: { user_id: req.user.user_id } },
       take: 10,
       orderBy: { date: 'desc' },
-      select: { amount: true, merchant_name: true, date: true }
+      select: { amount: true, merchant_name: true, date: true },
     });
-    
+
     const contextPrompt = `
       You are a helpful, enthusiastic AI financial advisor for college students.
       The user is asking: "${message}"
@@ -33,8 +34,8 @@ router.post('/', authenticateToken, async (req, res) => {
     `;
 
     // 2. Call Gemini API if key exists, otherwise simulate
-    if (process.env.GEMINI_API_KEY) {
-      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    if (config.geminiApiKey) {
+      const genAI = new GoogleGenerativeAI(config.geminiApiKey);
       const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
       const result = await model.generateContent(contextPrompt);
       const responseText = result.response.text();

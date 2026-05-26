@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../../db');
 const { authenticateToken } = require('../../middleware/auth.middleware');
+const { parsePositiveNumber } = require('../../utils/validation');
+
+const ALLOWED_PERIODS = new Set(['WEEKLY', 'MONTHLY', 'QUARTERLY', 'SEMI_ANNUAL']);
 
 // Helper to get start date based on period
 function getStartDateForPeriod(period) {
@@ -33,29 +36,31 @@ router.get('/', authenticateToken, async (req, res) => {
   try {
     const budgets = await prisma.budget.findMany({
       where: { user_id: req.user.user_id },
-      orderBy: { start_date: 'desc' }
+      orderBy: { start_date: 'desc' },
     });
 
-    const budgetsWithSpent = await Promise.all(budgets.map(async (b) => {
-      const startDate = getStartDateForPeriod(b.period);
-      
-      // Calculate spent amount from transactions (negative amounts)
-      const transactions = await prisma.transaction.findMany({
-        where: {
-          account: { user_id: req.user.user_id },
-          date: { gte: startDate },
-          amount: { lt: 0 } // expenses are negative
-        }
-      });
-      
-      const current_spent = transactions.reduce((acc, t) => acc + Math.abs(t.amount), 0);
+    const budgetsWithSpent = await Promise.all(
+      budgets.map(async (b) => {
+        const startDate = getStartDateForPeriod(b.period);
 
-      return {
-        ...b,
-        current_spent,
-        period_start: startDate
-      };
-    }));
+        // Calculate spent amount from transactions (negative amounts)
+        const transactions = await prisma.transaction.findMany({
+          where: {
+            account: { user_id: req.user.user_id },
+            date: { gte: startDate },
+            amount: { lt: 0 }, // expenses are negative
+          },
+        });
+
+        const current_spent = transactions.reduce((acc, t) => acc + Math.abs(t.amount), 0);
+
+        return {
+          ...b,
+          current_spent,
+          period_start: startDate,
+        };
+      })
+    );
 
     res.json(budgetsWithSpent);
   } catch (error) {
@@ -67,25 +72,30 @@ router.get('/', authenticateToken, async (req, res) => {
 router.post('/', authenticateToken, async (req, res) => {
   try {
     const { period, amount_limit } = req.body;
-    
+    const amountLimit = parsePositiveNumber(amount_limit);
+
+    if (!ALLOWED_PERIODS.has(period) || !amountLimit) {
+      return res.status(400).json({ error: 'Valid period and positive amount_limit are required' });
+    }
+
     // Check if budget for this period already exists
     const existing = await prisma.budget.findFirst({
-      where: { user_id: req.user.user_id, period }
+      where: { user_id: req.user.user_id, period },
     });
-    
+
     let budget;
     if (existing) {
       budget = await prisma.budget.update({
         where: { budget_id: existing.budget_id },
-        data: { amount_limit }
+        data: { amount_limit: amountLimit },
       });
     } else {
       budget = await prisma.budget.create({
         data: {
           user_id: req.user.user_id,
           period,
-          amount_limit
-        }
+          amount_limit: amountLimit,
+        },
       });
     }
 

@@ -75,19 +75,53 @@
 
 <div class="dashboard-grid">
   <div class="glass-panel wide-card">
-    <h3>Recent Transactions</h3>
-    <div class="transaction-list">
-      <div class="transaction-item" *ngFor="let t of transactions">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+      <h3 style="margin: 0;">Recent Transactions</h3>
+      <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+        <input type="text" class="form-control search-input" [(ngModel)]="searchQuery"
+               (ngModelChange)="filterTransactions()" placeholder="🔍 Search merchants..." />
+        <select class="form-control filter-select" [(ngModel)]="filterType" (ngModelChange)="filterTransactions()">
+          <option value="all">All</option>
+          <option value="expenses">Expenses Only</option>
+          <option value="income">Income Only</option>
+          <option value="recurring">Recurring</option>
+        </select>
+        <button class="btn-export" (click)="exportCSV()" title="Export to CSV">📥 Export</button>
+      </div>
+    </div>
+
+    <!-- Loading Skeleton -->
+    <div class="transaction-list" *ngIf="isLoadingTransactions">
+      <div class="skeleton-item" *ngFor="let i of [1,2,3,4,5]">
+        <div class="skeleton-line" style="width: 40%;"></div>
+        <div class="skeleton-line" style="width: 20%;"></div>
+      </div>
+    </div>
+
+    <div class="transaction-list" *ngIf="!isLoadingTransactions">
+      <div class="transaction-item" *ngFor="let t of filteredTransactions">
         <div class="t-info">
           <span class="t-name">{{ t.merchant_name }}</span>
-          <span class="t-date">{{ t.date | date:'mediumDate' }}</span>
+          <span class="t-date">{{ t.date | date:'mediumDate' }}
+            <span class="recurring-badge" *ngIf="t.is_recurring">🔄 Recurring</span>
+          </span>
         </div>
-        <div class="t-amount" [ngClass]="{'negative': t.amount < 0, 'positive': t.amount > 0}">
-          {{ t.amount | currency }}
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div class="t-amount" [ngClass]="{'negative': t.amount < 0, 'positive': t.amount > 0}">
+            {{ t.amount | currency }}
+          </div>
+          <button class="btn-split"
+                  *ngIf="t.amount < 0"
+                  (click)="splitTransaction(t)"
+                  [disabled]="t.isSplitting"
+                  title="Split with roommates">
+            {{ t.isSplitting ? '...' : '✂️ Split' }}
+          </button>
         </div>
       </div>
-      <div *ngIf="transactions.length === 0" style="padding: 1rem; text-align: center; color: var(--text-secondary)">
-        No recent transactions found.
+      <div *ngIf="filteredTransactions.length === 0" style="padding: 2rem; text-align: center; color: var(--text-secondary)">
+        <span *ngIf="searchQuery || filterType !== 'all'">No transactions match your filters.</span>
+        <span *ngIf="!searchQuery && filterType === 'all'">No recent transactions found. Connect a bank to get started!</span>
       </div>
     </div>
   </div>

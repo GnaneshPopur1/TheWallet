@@ -10,6 +10,7 @@ export interface User {
   round_up_balance?: number;
   venmo_handle?: string;
   is_email_verified?: boolean;
+  has_completed_onboarding?: boolean;
 }
 
 export interface AuthResponse {
@@ -68,6 +69,19 @@ export class AuthService {
         const current = this.currentUserSubject.value;
         if (current) {
           this.currentUserSubject.next({ ...current, venmo_handle: user.venmo_handle });
+        }
+      })
+    );
+  }
+
+  completeOnboarding(): Observable<User> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.post<User>(`${this.apiUrl}/me/complete-onboarding`, {}, { headers }).pipe(
+      tap(user => {
+        const current = this.currentUserSubject.value;
+        if (current) {
+          this.currentUserSubject.next({ ...current, has_completed_onboarding: true });
         }
       })
     );

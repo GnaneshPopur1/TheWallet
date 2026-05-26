@@ -10,7 +10,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(),
     provideServiceWorker('ngsw-worker.js', {
-      enabled: true, // Enabled in dev mode for MVP testing
+      enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',
     }),
     provideCharts(withDefaultRegisterables()),
