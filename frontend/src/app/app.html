@@ -1,5 +1,5 @@
-<div class="app-container">
-  <aside class="sidebar glass-panel">
+<div class="app-container" [ngClass]="{'no-sidebar': !authService.isLoggedIn()}">
+  <aside class="sidebar glass-panel" *ngIf="authService.isLoggedIn()">
     <div class="logo">
       <h2>TheWallet</h2>
     </div>
