@@ -3,15 +3,18 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const config = require('./config');
 
 const app = express();
 
 // Security Middlewares
 app.use(helmet());
-app.use(cors({
-  origin: 'http://localhost:4200', // Angular default port
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: config.corsOrigin,
+    credentials: true,
+  })
+);
 
 // Rate limiting
 const apiLimiter = rateLimit({
@@ -57,7 +60,20 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
 });
+
+app.use((err, req, res, next) => {
+  console.error(err);
+  const status = err.status || err.statusCode || (err.code === 'LIMIT_FILE_SIZE' ? 400 : 500);
+  res.status(status).json({ error: status === 500 ? 'Internal server error' : err.message });
+});
+
+if (require.main === module) {
+  app.listen(config.port, () => {
+    console.log(`Server is running on port ${config.port}`);
+  });
+}
+
+module.exports = app;

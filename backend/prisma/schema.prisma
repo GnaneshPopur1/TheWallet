@@ -20,6 +20,7 @@ model User {
   venmo_handle       String?
   is_email_verified  Boolean            @default(false)
   verification_token String?
+  has_completed_onboarding Boolean      @default(false)
   
   roommate_group_id  String?
   Roommate_Group   Roommate_Group?    @relation(fields: [roommate_group_id], references: [group_id])
@@ -88,6 +89,8 @@ model Academic_Term {
   tuition_total      Float
   aid_applied        Float
   dining_dollars_bal Float
+  end_date           DateTime?
+  created_at         DateTime @default(now())
   
   user               User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 }

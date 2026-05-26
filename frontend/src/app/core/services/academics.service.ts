@@ -10,37 +10,45 @@ export interface AcademicTerm {
   tuition_total: number;
   aid_applied: number;
   dining_dollars_bal: number;
+  end_date?: string | null;
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AcademicsService {
   private apiUrl = `${environment.apiUrl}/academics`;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   private getHeaders() {
     const token = localStorage.getItem('token');
     return {
       headers: new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      })
+        Authorization: `Bearer ${token}`,
+      }),
     };
   }
 
   getTerms(): Observable<AcademicTerm[]> {
-    return this.http.get<AcademicTerm[]>(`${this.apiUrl}/terms`, this.getHeaders())
+    return this.http
+      .get<AcademicTerm[]>(`${this.apiUrl}/terms`, this.getHeaders())
       .pipe(catchError(this.handleError<AcademicTerm[]>('getTerms', [])));
   }
 
   getTermData(): Observable<AcademicTerm> {
-    return this.http.get<AcademicTerm>(`${this.apiUrl}/term`, this.getHeaders())
+    return this.http
+      .get<AcademicTerm>(`${this.apiUrl}/terms/current`, this.getHeaders())
       .pipe(catchError(this.handleError<AcademicTerm>('getTermData')));
   }
 
-  getDiningData(): Observable<{ safe_daily_spend: number, days_remaining: number, dining_dollars: number }> {
-    return this.http.get<any>(`${this.apiUrl}/dining`, this.getHeaders())
+  getDiningData(): Observable<{
+    safe_daily_spend: number;
+    days_remaining: number;
+    dining_dollars: number;
+  }> {
+    return this.http
+      .get<any>(`${this.apiUrl}/dining`, this.getHeaders())
       .pipe(catchError(this.handleError<any>('getDiningData')));
   }
 

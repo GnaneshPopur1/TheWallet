@@ -4,8 +4,16 @@ const multer = require('multer');
 const tesseract = require('tesseract.js');
 const { authenticateToken } = require('../../middleware/auth.middleware');
 
-// Set up multer for memory storage
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype.startsWith('image/')) {
+      return cb(new Error('Only image receipts are supported'));
+    }
+    cb(null, true);
+  },
+});
 
 router.post('/scan', authenticateToken, upload.single('receipt'), async (req, res) => {
   if (!req.file) {
@@ -14,16 +22,15 @@ router.post('/scan', authenticateToken, upload.single('receipt'), async (req, re
 
   try {
     // Run OCR
-    const { data: { text } } = await tesseract.recognize(
-      req.file.buffer,
-      'eng'
-    );
-    
+    const {
+      data: { text },
+    } = await tesseract.recognize(req.file.buffer, 'eng');
+
     // Simple regex to find a Total amount (e.g. Total: $12.34 or TOTAL 12.34)
     const totalRegex = /total[\s:]*[$]*([0-9]+\.[0-9]{2})/i;
     const match = text.match(totalRegex);
     let extractedTotal = null;
-    
+
     if (match && match[1]) {
       extractedTotal = parseFloat(match[1]);
     }
@@ -31,7 +38,7 @@ router.post('/scan', authenticateToken, upload.single('receipt'), async (req, re
     res.json({
       success: true,
       text: text,
-      extractedTotal: extractedTotal
+      extractedTotal: extractedTotal,
     });
   } catch (error) {
     console.error('OCR Error:', error);

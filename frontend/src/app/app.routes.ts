@@ -6,14 +6,20 @@ import { Subscriptions } from './features/subscriptions/subscriptions';
 import { Budgets } from './features/budgets/budgets';
 import { Register } from './features/auth/register/register';
 import { Login } from './features/auth/login/login';
+import { Onboarding } from './features/onboarding/onboarding';
+import { Settings } from './features/settings/settings';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
   { path: 'login', component: Login },
   { path: 'register', component: Register },
-  { path: 'dashboard', component: Dashboard },
-  { path: 'education', component: EducationHub },
-  { path: 'costs', component: FixedCosts },
-  { path: 'subscriptions', component: Subscriptions },
-  { path: 'budgets', component: Budgets }
+  { path: 'onboarding', component: Onboarding, canActivate: [authGuard] },
+  { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
+  { path: 'education', component: EducationHub, canActivate: [authGuard] },
+  { path: 'costs', component: FixedCosts, canActivate: [authGuard] },
+  { path: 'subscriptions', component: Subscriptions, canActivate: [authGuard] },
+  { path: 'budgets', component: Budgets, canActivate: [authGuard] },
+  { path: 'settings', component: Settings, canActivate: [authGuard] },
+  { path: '**', redirectTo: '/dashboard' },
 ];
