@@ -16,41 +16,54 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
-// Simulate AI Deep Scan
+// AI Deep Scan using real Transaction data
 router.post('/scan-footprint', authenticateToken, async (req, res) => {
   try {
-    // Look at user's existing subscriptions to see if we already scanned
-    const existing = await prisma.subscription.findMany({
-      where: { user_id: req.user.user_id }
+    // 1. Fetch recurring transactions from the user's accounts
+    const recurringTxns = await prisma.transaction.findMany({
+      where: {
+        account: { user_id: req.user.user_id },
+        is_recurring: true,
+        amount: { lt: 0 } // Subscriptions are expenses (negative amount in our system)
+      },
+      orderBy: { date: 'desc' }
     });
 
-    if (existing.length > 0) {
-      return res.json({ message: 'Scan complete', subscriptions: existing });
+    // 2. Group by merchant_name to find unique subscriptions
+    const uniqueSubsMap = new Map();
+    for (const txn of recurringTxns) {
+      if (txn.merchant_name && !uniqueSubsMap.has(txn.merchant_name)) {
+        uniqueSubsMap.set(txn.merchant_name, {
+          merchant_name: txn.merchant_name,
+          amount: Math.abs(txn.amount) // Store positive amount for the subscription display
+        });
+      }
     }
 
-    // Simulate AI scanning transactions and digital footprint
-    const mockFound = [
-      { merchant_name: 'Netflix', amount: 15.99 },
-      { merchant_name: 'Spotify Premium', amount: 10.99 },
-      { merchant_name: 'Gym Membership', amount: 45.00 },
-      { merchant_name: 'Amazon Prime', amount: 14.99 }
-    ];
+    const newSubs = [];
 
-    const created = await prisma.$transaction(
-      mockFound.map(sub => 
-        prisma.subscription.create({
+    // 3. Check existing subscriptions and create missing ones
+    for (const [merchant_name, data] of uniqueSubsMap) {
+      const existing = await prisma.subscription.findFirst({
+        where: { user_id: req.user.user_id, merchant_name }
+      });
+
+      if (!existing) {
+        const created = await prisma.subscription.create({
           data: {
             user_id: req.user.user_id,
-            merchant_name: sub.merchant_name,
-            amount: sub.amount,
+            merchant_name: data.merchant_name,
+            amount: data.amount,
             status: 'ACTIVE'
           }
-        })
-      )
-    );
+        });
+        newSubs.push(created);
+      }
+    }
 
-    res.status(201).json({ message: 'AI found new subscriptions', subscriptions: created });
+    res.status(201).json({ message: 'Scan complete', subscriptions: newSubs });
   } catch (error) {
+    console.error('Error scanning footprint:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
