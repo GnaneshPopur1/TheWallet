@@ -1,5 +1,7 @@
 import { Routes } from '@angular/router';
 import { HomeComponent } from './features/home/home';
+import { AboutComponent } from './features/about/about';
+import { DownloadComponent } from './features/download/download';
 import { Dashboard } from './features/dashboard/dashboard';
 import { EducationHub } from './features/education-hub/education-hub';
 import { FixedCosts } from './features/fixed-costs/fixed-costs';
@@ -17,6 +19,8 @@ import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
+  { path: 'about', component: AboutComponent },
+  { path: 'download', component: DownloadComponent },
   { path: 'login', component: Login },
   { path: 'register', component: Register },
   { path: 'onboarding', component: Onboarding, canActivate: [authGuard] },
