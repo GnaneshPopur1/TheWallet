@@ -1,0 +1,40 @@
+<nav class="premium-navbar" [ngClass]="{'scrolled': isScrolled}">
+  <div class="nav-container">
+    <div class="logo">
+      <span class="logo-icon">💰</span> TheWallet
+    </div>
+    
+    <div class="nav-links desktop-only">
+      <a routerLink="/" fragment="home" class="nav-link">Home</a>
+      <a routerLink="/" fragment="features" class="nav-link">Features</a>
+      <a routerLink="/" fragment="download" class="nav-link">Download</a>
+      <a routerLink="/" fragment="about" class="nav-link">About</a>
+      <a routerLink="/" fragment="careers" class="nav-link">Careers</a>
+    </div>
+
+    <div class="auth-buttons desktop-only">
+      <a routerLink="/login" class="btn btn-login">Sign In</a>
+      <a routerLink="/register" class="btn btn-signup">Sign Up Free</a>
+    </div>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-toggle" (click)="toggleMobileMenu()">
+      <span class="bar"></span>
+      <span class="bar"></span>
+      <span class="bar"></span>
+    </button>
+  </div>
+
+  <!-- Mobile Menu Dropdown -->
+  <div class="mobile-menu" [ngClass]="{'open': isMobileMenuOpen}">
+    <a routerLink="/" fragment="home" class="nav-link" (click)="toggleMobileMenu()">Home</a>
+    <a routerLink="/" fragment="features" class="nav-link" (click)="toggleMobileMenu()">Features</a>
+    <a routerLink="/" fragment="download" class="nav-link" (click)="toggleMobileMenu()">Download</a>
+    <a routerLink="/" fragment="about" class="nav-link" (click)="toggleMobileMenu()">About</a>
+    <a routerLink="/" fragment="careers" class="nav-link" (click)="toggleMobileMenu()">Careers</a>
+    <div class="mobile-auth">
+      <a routerLink="/login" class="btn btn-login w-100" (click)="toggleMobileMenu()">Sign In</a>
+      <a routerLink="/register" class="btn btn-signup w-100" (click)="toggleMobileMenu()">Sign Up Free</a>
+    </div>
+  </div>
+</nav>

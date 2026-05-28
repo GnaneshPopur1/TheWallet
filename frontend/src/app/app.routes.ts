@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { HomeComponent } from './features/home/home';
 import { Dashboard } from './features/dashboard/dashboard';
 import { EducationHub } from './features/education-hub/education-hub';
 import { FixedCosts } from './features/fixed-costs/fixed-costs';
@@ -15,7 +16,7 @@ import { Connections } from './features/connections/connections';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
+  { path: '', component: HomeComponent },
   { path: 'login', component: Login },
   { path: 'register', component: Register },
   { path: 'onboarding', component: Onboarding, canActivate: [authGuard] },
