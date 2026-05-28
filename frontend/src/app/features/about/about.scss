@@ -8,6 +8,12 @@
   display: flex;
   flex-direction: column;
 
+  &.with-sidebar {
+    padding-left: 328px; /* 280px sidebar + 24px + 24px */
+    padding-top: 24px;
+    padding-right: 24px;
+  }
+
   .orb {
     position: absolute;
     border-radius: 50%;
@@ -87,6 +93,10 @@
     
     .footer-logo { font-size: 1.5rem; font-weight: 800; margin-bottom: 1rem; }
     .footer-copyright { color: #64748b; font-size: 0.9rem; }
+  }
+
+  @media (max-width: 992px) {
+    &.with-sidebar { padding: 0; }
   }
 
   @media (max-width: 768px) {
