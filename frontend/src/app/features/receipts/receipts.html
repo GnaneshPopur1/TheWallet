@@ -1,0 +1,53 @@
+<div class="receipts-container">
+  <div class="page-header">
+    <div>
+      <h1>Receipt Scanner</h1>
+      <p class="subtitle">Upload a receipt image to automatically extract totals using OCR.</p>
+    </div>
+  </div>
+
+  <div class="upload-card" *ngIf="!isScanning && !scanResult">
+    <div class="upload-icon">📸</div>
+    <h3>Select an Image</h3>
+    <p>Upload a clear photo of your receipt</p>
+    
+    <label class="btn btn-primary file-label">
+      Choose File
+      <input type="file" (change)="onFileSelected($event)" accept="image/*" class="file-input">
+    </label>
+  </div>
+
+  <div class="scanning-state" *ngIf="isScanning">
+    <div class="spinner"></div>
+    <h3>Analyzing Receipt...</h3>
+    <p>Extracting text and identifying total amount (this may take a moment)</p>
+  </div>
+
+  <div class="result-card" *ngIf="scanResult && !isScanning">
+    <div class="result-header">
+      <div class="icon-success">✅</div>
+      <h3>Scan Complete</h3>
+    </div>
+
+    <div class="extracted-data">
+      <div class="data-group">
+        <label>Extracted Total</label>
+        <div class="total-value" *ngIf="scanResult.extractedTotal !== null">
+          {{ scanResult.extractedTotal | currency }}
+        </div>
+        <div class="total-value not-found" *ngIf="scanResult.extractedTotal === null">
+          Could not find total amount
+        </div>
+      </div>
+
+      <div class="data-group">
+        <label>Raw Extracted Text</label>
+        <div class="raw-text">{{ scanResult.text || 'No text recognized.' }}</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-outline" (click)="resetScan()">Scan Another</button>
+    </div>
+  </div>
+</div>

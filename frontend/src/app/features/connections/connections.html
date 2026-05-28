@@ -1,0 +1,38 @@
+<div class="connections-container">
+  <div class="page-header">
+    <div>
+      <h1>Bank Connections</h1>
+      <p class="subtitle">Securely link your bank accounts using Plaid.</p>
+    </div>
+    <button class="btn btn-primary" (click)="connectBank()">
+      <span class="icon">🔗</span> Connect Bank
+    </button>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading connections...</p>
+  </div>
+
+  <div *ngIf="!isLoading && connections.length === 0" class="empty-state">
+    <div class="icon-large">🏦</div>
+    <h2>No Banks Connected</h2>
+    <p>Connect your checking, savings, or credit card accounts to automatically sync transactions and budgets.</p>
+    <button class="btn btn-primary" (click)="connectBank()">Connect Now</button>
+  </div>
+
+  <div *ngIf="!isLoading && connections.length > 0" class="connections-list">
+    <div class="connection-card" *ngFor="let conn of connections">
+      <div class="connection-info">
+        <div class="bank-icon">🏦</div>
+        <div>
+          <h3>{{ conn.institution_name }}</h3>
+          <span class="status" [ngClass]="conn.status">{{ conn.status | titlecase }}</span>
+        </div>
+      </div>
+      <button class="btn btn-danger-outline" (click)="deleteConnection(conn.connection_id)">
+        Disconnect
+      </button>
+    </div>
+  </div>
+</div>

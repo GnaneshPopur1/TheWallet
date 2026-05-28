@@ -1,0 +1,71 @@
+<div class="credit-container">
+  <div class="page-header">
+    <div>
+      <h1>Credit Score</h1>
+      <p class="subtitle">Monitor your credit health and history.</p>
+    </div>
+    <button class="btn btn-primary" (click)="refreshScore()" [disabled]="isRefreshing">
+      {{ isRefreshing ? 'Refreshing...' : 'Refresh Score' }}
+    </button>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading credit data...</p>
+  </div>
+
+  <div *ngIf="!isLoading && history.length === 0" class="empty-state">
+    <div class="icon-large">📊</div>
+    <h2>No Credit History Found</h2>
+    <p>Click refresh to pull your latest VantageScore rating.</p>
+    <button class="btn btn-primary" (click)="refreshScore()">Pull Score Now</button>
+  </div>
+
+  <div *ngIf="!isLoading && history.length > 0" class="dashboard-grid">
+    
+    <!-- Current Score Card -->
+    <div class="card current-score-card">
+      <h3>Current VantageScore</h3>
+      <div class="score-display">
+        <div class="score-circle" [ngClass]="getScoreRating().colorClass">
+          <span class="score-number">{{ currentScore }}</span>
+        </div>
+        <div class="score-meta">
+          <div class="rating" [ngClass]="getScoreRating().colorClass">
+            {{ getScoreRating().label }}
+          </div>
+          <div class="date-updated">
+            Last updated: {{ history[history.length - 1].recorded_at | date:'mediumDate' }}
+          </div>
+        </div>
+      </div>
+      
+      <div class="score-scale">
+        <div class="segment poor"></div>
+        <div class="segment fair"></div>
+        <div class="segment good"></div>
+        <div class="segment excellent"></div>
+      </div>
+      <div class="scale-labels">
+        <span>300</span>
+        <span>650</span>
+        <span>700</span>
+        <span>750</span>
+        <span>850</span>
+      </div>
+    </div>
+
+    <!-- History Chart Card -->
+    <div class="card chart-card">
+      <h3>Score History (Last 6 Months)</h3>
+      <div class="chart-container">
+        <canvas baseChart
+          [data]="lineChartData"
+          [options]="lineChartOptions"
+          [type]="'line'">
+        </canvas>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,127 @@
+<div class="roommates-container">
+  <div class="page-header">
+    <div>
+      <h1>Roommates & Splits</h1>
+      <p class="subtitle" *ngIf="groupData?.group">Group: {{ groupData?.group.group_name }}</p>
+    </div>
+    <button class="btn btn-primary" (click)="openAddExpense()" *ngIf="groupData?.group">
+      <span class="icon">➕</span> Add Expense
+    </button>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading roommate data...</p>
+  </div>
+
+  <!-- Not in a group state -->
+  <div *ngIf="!isLoading && (!groupData || !groupData.group)" class="empty-state">
+    <div class="icon-large">🏠</div>
+    <h2>No Roommate Group</h2>
+    <p>You aren't in a roommate group yet. To split rent and utilities, ask your roommates to invite you or create a group.</p>
+  </div>
+
+  <div *ngIf="!isLoading && groupData?.group" class="dashboard-grid">
+    
+    <!-- Ledger Overview -->
+    <div class="card ledger-card">
+      <h3>Your Balances</h3>
+      <div class="balance-grid">
+        <div class="stat-box">
+          <span class="label">You Owe</span>
+          <span class="value negative">{{ groupData?.ledger?.totalIOwe | currency }}</span>
+        </div>
+        <div class="stat-box">
+          <span class="label">You are Owed</span>
+          <span class="value positive">{{ groupData?.ledger?.totalOwedToMe | currency }}</span>
+        </div>
+        <div class="stat-box">
+          <span class="label">Net Balance</span>
+          <span class="value" [class.positive]="(groupData?.ledger?.netBalance || 0) > 0" [class.negative]="(groupData?.ledger?.netBalance || 0) < 0">
+            {{ groupData?.ledger?.netBalance | currency }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Splits to Settle -->
+    <div class="card splits-card" *ngIf="(groupData?.splitsOwedByMe?.length || 0) > 0 || (groupData?.splitsOwedToMe?.length || 0) > 0">
+      <h3>Unsettled Splits</h3>
+      
+      <div class="split-section" *ngIf="groupData?.splitsOwedByMe?.length">
+        <h4>You Owe</h4>
+        <div class="split-item" *ngFor="let split of groupData?.splitsOwedByMe">
+          <div class="split-info">
+            <strong>{{ split.expense?.payer?.email }}</strong> for {{ split.expense?.description }}
+          </div>
+          <div class="split-actions">
+            <span class="amount negative">{{ split.amount_owed | currency }}</span>
+            <button class="btn btn-sm btn-outline" (click)="settleUp(split.split_id)">Settle</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="split-section" *ngIf="groupData?.splitsOwedToMe?.length">
+        <h4>Owed to You</h4>
+        <div class="split-item" *ngFor="let split of groupData?.splitsOwedToMe">
+          <div class="split-info">
+            <strong>{{ split.ower?.email }}</strong> for {{ split.expense?.description }}
+          </div>
+          <div class="split-actions">
+            <span class="amount positive">{{ split.amount_owed | currency }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Shared Expenses -->
+    <div class="card expenses-card">
+      <h3>Recent Group Expenses</h3>
+      <div *ngIf="expenses.length === 0" class="no-data">No shared expenses yet.</div>
+      <table class="data-table" *ngIf="expenses.length > 0">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Paid By</th>
+            <th>Total Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let expense of expenses">
+            <td>{{ expense.date | date:'shortDate' }}</td>
+            <td>{{ expense.description }}</td>
+            <td>{{ expense.payer?.email }}</td>
+            <td><strong>{{ expense.amount | currency }}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- Add Expense Modal -->
+  <div class="modal-backdrop" *ngIf="showAddExpenseModal">
+    <div class="modal-content">
+      <h2>Add Shared Expense</h2>
+      <p>This expense will be split evenly among all group members.</p>
+      
+      <div class="form-group">
+        <label>Description</label>
+        <input type="text" [(ngModel)]="newExpenseDescription" placeholder="e.g. Internet Bill" class="form-control">
+      </div>
+      
+      <div class="form-group">
+        <label>Total Amount ($)</label>
+        <input type="number" [(ngModel)]="newExpenseAmount" placeholder="0.00" min="0.01" step="0.01" class="form-control">
+      </div>
+      
+      <div class="modal-actions">
+        <button class="btn btn-text" (click)="closeAddExpense()">Cancel</button>
+        <button class="btn btn-primary" (click)="submitExpense()" [disabled]="!newExpenseAmount || !newExpenseDescription || isAddingExpense">
+          {{ isAddingExpense ? 'Adding...' : 'Add Expense' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
