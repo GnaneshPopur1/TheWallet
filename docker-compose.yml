@@ -5,28 +5,21 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: thewallet-backend
     ports:
-      - '3000:3000'
+      - "3000:3000"
     environment:
-      - DATABASE_URL=file:/app/data/dev.db
-      - JWT_SECRET=${JWT_SECRET:-dev-only-change-me}
-      - CORS_ORIGIN=http://localhost
-      - PUBLIC_API_URL=http://localhost:3000
-      - PORT=3000
+      - NODE_ENV=production
+      - DATABASE_URL=file:./prisma/dev.db
+      - FRONTEND_URL=http://localhost:8080
+      # Keys should ideally be injected at runtime rather than checked into docker-compose
     volumes:
-      - backend-data:/app/data
-    command: sh -c "mkdir -p /app/data && touch /app/data/dev.db && npx prisma migrate deploy && npm start"
+      - ./backend/prisma:/app/prisma
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: thewallet-frontend
     ports:
-      - '80:80'
+      - "8080:80"
     depends_on:
       - backend
-
-volumes:
-  backend-data:
