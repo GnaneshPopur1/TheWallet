@@ -12,7 +12,7 @@ import { RouterModule } from '@angular/router';
 export class NavbarComponent {
   activeSection: string = 'home';
 
-  @HostListener('window:scroll', ['$event'])
+  @HostListener('window:scroll')
   onScroll() {
     const sections = ['home', 'features', 'about'];
     let current = 'home';
