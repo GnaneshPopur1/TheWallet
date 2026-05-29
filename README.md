@@ -141,10 +141,10 @@ Local URLs:
 ## Docker
 
 ```bash
-docker compose up --build
+docker-compose up --build
 ```
 
-Docker serves the frontend at `http://localhost` and the backend at `http://localhost:3000`. The backend stores SQLite data in the `backend-data` Docker volume.
+Docker serves the frontend at `http://localhost:8080` and the backend at `http://localhost:3000`. The backend mounts your local `./backend/prisma` folder so your `dev.db` database changes persist even when the container stops.
 
 ## Verification
 
